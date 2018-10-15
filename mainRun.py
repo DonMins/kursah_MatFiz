@@ -1,6 +1,6 @@
 import scipy.special as spc
 import numpy as np
-import  scipy as sp
+import scipy as sp
 import plotly.offline as py
 
 
@@ -28,8 +28,8 @@ def updateParameret_array(dan):
 
 # надо как нибудь оптимизировать
 bessel0 = [0, ]
-temp = spc.jn_zeros(1, 10000)
-print(temp)
+temp = spc.jn_zeros(1, 500)
+
 for t in temp:
     bessel0.append(t)
 ##
@@ -41,26 +41,28 @@ def Bn(n):
     return numerator/denominator
 
 def An(n,t):
-    numerator = Bn(n)*parameter_array['c']*parameter_array['l']*parameter_array['R']**2
-    denominator = 2*parameter_array['alf'] * parameter_array['R']**2 + parameter_array['k']* \
-                  bessel0[n]**2 * parameter_array['l']
+    numerator = Bn(n)*parameter_array['c']*parameter_array['l']*(parameter_array['R'])**2
+    denominator = (2*parameter_array['alf'] * (parameter_array['R'])**2 )+ (parameter_array['k']* \
+                  bessel0[n]**2 * parameter_array['l'])
 
-    x =(-2*parameter_array['alf'] * parameter_array['R']**2 - parameter_array['k']* \
-                  bessel0[n]**2 * parameter_array['l'] *t) /( parameter_array['c']*parameter_array['l']*parameter_array['R']**2)
+    x =(((-2*parameter_array['alf'] * parameter_array['R']**2) - (parameter_array['k']* \
+                  bessel0[n]**2 * parameter_array['l']))*t)/( parameter_array['c']*parameter_array['l']*parameter_array['R']**2)
 
     all = numerator/denominator
-    return  all * (1- np.exp(x))
+    return all * (1- np.exp(x))
 
-def u(r,t, eco, date=None):
+def u(r,t, esp, date=None):
     if date != None:
         updateParameret_array(date)
 
-    u = (parameter_array['l']*parameter_array['betta']*parameter_array['P'] *\
-         ( 1-sp.exp(-2*parameter_array['alf']*t/(parameter_array['c']*parameter_array['l']))))/\
-         (25*sp.pi*2*parameter_array['alf']*parameter_array['a']**2)
-    for i in np.arange(1,120,1):
-        mn = bessel0[i]
-        u +=An(i, t) * spc.j0(mn * r / parameter_array['R'])
+    numerator = (parameter_array['l']*parameter_array['betta']*parameter_array['P'] )
+    denominator = (50*sp.pi*parameter_array['alf']*parameter_array['a']**2)
+    all = numerator/denominator
+    x = ((-2*parameter_array['alf']*t)/(parameter_array['c']*parameter_array['l']))
+    u = all * (1- np.exp(x))
+
+    for i in np.arange(1,200,1):
+        u +=An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
     return u
 
 def getparams():
@@ -74,7 +76,7 @@ def drawUIT(da, eps):
     name='t = ' + str(step),
     x=np.arange(0, 5, 0.1),
     y=[u(t, step, eps, da) for t in np.arange(0, 5, 0.1)]) for step in
-    range(100)]
+    range(180)]
     steps = []
     for i in range(len(data)):
         step = dict(
@@ -144,7 +146,9 @@ if yes.upper() == "YES":
     da['a'] = float(R) / 5
     da['T'] = float(T)
 
-eps = int(input("Введите точность (целоечисло -количество знаков после запятой)"))
+#eps = int(input("Введите точность (целоечисло -количество знаков после запятой)"))
+eps=1
 print("Подождите, пожалуйста, выполняются вычисления...")
 drawUIR(da, eps)
 drawUIT(da, eps)
+print(spc.j0(0))
