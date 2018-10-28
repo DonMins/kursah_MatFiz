@@ -15,6 +15,16 @@ parameter_array = {
     'P': 40,
     'a': 0.8,
     'T': 180}
+
+array_norm_N = {'1':7,
+                '2':18,
+                '3':52,
+                '4':137,
+                '5':347,
+                '6':877,
+                '7':2202}
+
+dataChanged=[0]
 def updateParameret_array(dan):
     parameter_array['R'] = dan['R']
     parameter_array['l'] = dan['l']
@@ -53,7 +63,7 @@ def An(n,t):
 
 def analitic_eps(rank):
     rank = 10**(-rank)
-    N = ((2*parameter_array['betta']*parameter_array['P']*10**(1/2))/ (15*(parameter_array['a'])**2 *parameter_array['k']*parameter_array['l']*
+    N = ((2*parameter_array['betta']*parameter_array['R']*parameter_array['P']*10**(1/2))/ (15*(parameter_array['a'])**2 *parameter_array['k']*
                                                                       (np.pi)**3 * rank))**(2/3)
     return round(N)
 
@@ -76,14 +86,15 @@ def experimental_eps(r, t, eps, date=None):
     for i in np.arange(1, N+1, 1):
         u += An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
         flag.append(u)
+
     i=N-2
     analit_eps = flag[N-1]
-
-    while (abs ( analit_eps - flag[i])<=10**(-eps)):
+    while (abs ( analit_eps - flag[i])<=10**(-eps))and(i>0):
         i=i-1
     if ((i+2)>NMAX[0]):
         NMAX[0] = i+2
-    return u
+    flag.clear()
+    return NMAX[0]
 
 def u(r,t, eps,colslag,date=None):
     if date != None:
@@ -95,9 +106,22 @@ def u(r,t, eps,colslag,date=None):
     x = ((-2*parameter_array['alf']*t)/(parameter_array['c']*parameter_array['l']))
     u = all * (1- np.exp(x))
     if (colslag==0):
-        N = analitic_eps(eps)
-        for i in np.arange(1,N,1):
-            u +=An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
+        if dataChanged[0]==1:
+            da=getparams()
+            for t in np.arange(1, da['T'] + 1):
+                for r in np.arange(0, da['R'] + 0.1, 0.1):
+                    experimental_eps(r, t, eps, da)
+            N = NMAX[0]
+
+            for i in np.arange(1, N, 1):
+                u += An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
+
+        else:
+            N = array_norm_N[str(eps)]
+
+            for i in np.arange(1,N,1):
+                u +=An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
+
     else:
         for i in np.arange(1,colslag,1):
             u +=An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
@@ -169,7 +193,9 @@ def plot_eps(x,y):
     plt.plot(x, y,linewidth = 1,color = '#ff0000')
     plt.show()
 
+
 exit = 0
+
 while(exit==0):
     da = getparams()
     print("Текущие параметры")
@@ -179,6 +205,7 @@ while(exit==0):
     yes = input("Введите +, если хотите изменить параметры  иначе - ")
 
     if yes.upper() == "+":
+        dataChanged[0]=1
         R = input("Введите R ")
         l = input("Введите l ")
         k = input("Введите k ")
@@ -226,7 +253,7 @@ while(exit==0):
         error = (input(
             "Рассчитать кол -во слагаемых для достижени конкретной точности (введите 1 ) или для всего ряда (введите 2 (это займет много времени ))"))
         if error == "1":
-            ep = int(input("Введите точность (целоечисло -количество знаков после запятой)"))
+            ep = int(input("Введите точность (целое число -количество знаков после запятой)"))
             print("Подождите, пожалуйста, выполняются вычисления...")
             for t in np.arange(1, da['T'] + 1):
                 for r in np.arange(0, da['R'] + 0.1, 0.1):
@@ -253,4 +280,5 @@ while(exit==0):
             Y.reverse()
             plot_eps(X, Y)
     exit = int(input("Для выхода нажмите - 1 , чтобы продолжить - 0"))
+    dataChanged[0]=0
     print("-------------------------------------------------------------------------------------")
