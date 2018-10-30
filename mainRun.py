@@ -3,7 +3,7 @@ import numpy as np
 import scipy as sp
 import plotly.offline as py
 import matplotlib.pyplot as plt
-
+from matplotlib import ticker
 
 parameter_array = {
     'R': 4,
@@ -187,15 +187,27 @@ def plot_eps(x,y):
 
     fig=  plt.figure("График погрешности ")
     ax = fig.add_subplot(111)
-    # ax.set_xticks([10e-7,10e-6,10e-5,10e-4,10e-3,10e-2,10e-1])
+    #ax.set_xticks([10e-7,10e-6,10e-5,10e-4,10e-3,10e-2,10e-1])
     plt.grid(True)
     plt.plot(x, y, marker='o',markersize = 3,markeredgecolor = '#ff0000')
     plt.plot(x, y,linewidth = 1,color = '#ff0000')
+
+
+    ax.set_xscale('log')
+
+
+
     plt.show()
 
 
 exit = 0
 
+
+X = [10e-8,10e-7,10e-6,10e-5,10e-4,10e-3,10e-2]
+Y=[2202,877,347,137,52,18,7]
+
+
+plot_eps(X, Y)
 while(exit==0):
     da = getparams()
     print("Текущие параметры")
