@@ -62,7 +62,7 @@ def An(n,t):
     return all * (1- np.exp(x))
 
 def analitic_eps(rank):
-    rank = 10**(-rank)
+    #rank = 10**(-rank)
     N = ((2*parameter_array['betta']*parameter_array['R']*parameter_array['P']*10**(1/2))/ (15*(parameter_array['a'])**2 *parameter_array['k']*
                                                                       (np.pi)**3 * rank))**(2/3)
     return round(N)
@@ -89,7 +89,7 @@ def experimental_eps(r, t, eps, date=None):
 
     i=N-2
     analit_eps = flag[N-1]
-    while (abs ( analit_eps - flag[i])<=10**(-eps))and(i>0):
+    while (abs ( analit_eps - flag[i])<=eps)and(i>0):
         i=i-1
     if ((i+2)>NMAX[0]):
         NMAX[0] = i+2
@@ -183,15 +183,19 @@ def drawUIR(da, eps,colSlag):
     fig = dict(data=data, layout=layout)
     py.plot(fig, filename='Temperature in radius.html')
 
+Xnew = []
+Ynew=[]
+
 def plot_eps(x,y):
 
     fig=  plt.figure("График погрешности ")
     ax = fig.add_subplot(111)
-    #ax.set_xticks([10e-7,10e-6,10e-5,10e-4,10e-3,10e-2,10e-1])
     plt.grid(True)
-    plt.plot(x, y, marker='o',markersize = 3,markeredgecolor = '#ff0000')
-    plt.plot(x, y,linewidth = 1,color = '#ff0000')
-
+    plt.plot(x, y, marker='o',markersize = 2,markeredgecolor = '#0000FF')
+    plt.plot(x, y,linewidth = 1,color = '#00BFFF')
+    plt.plot(Xnew,Ynew,color='#FF0000')
+    plt.xlabel("accuracy")
+    plt.ylabel("number of members")
 
     ax.set_xscale('log')
 
@@ -202,12 +206,28 @@ def plot_eps(x,y):
 
 exit = 0
 
+# 
+# X = [0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1]
+# Y=[2202,877,347,137,52,18,7]
+# 
+# yt = 0.0000001
+# st = -8
+# i =0
+# while (yt<=10**-1):
+#     Ynew.append(experimental_eps(0,180,yt,parameter_array))
+#     NMAX[0]=0
+#     Xnew.append(yt)
+#     yt= yt + 9*10**st
+#     i=i+1
+#     if(i==9):
+#         st=st+1
+#         i=0
+#         yt=10**(st+1)
+# 
+# 
+# plot_eps(X,Y)
 
-X = [10e-8,10e-7,10e-6,10e-5,10e-4,10e-3,10e-2]
-Y=[2202,877,347,137,52,18,7]
 
-
-plot_eps(X, Y)
 while(exit==0):
     da = getparams()
     print("Текущие параметры")
