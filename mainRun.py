@@ -2,8 +2,9 @@ import scipy.special as spc
 import numpy as np
 import scipy as sp
 import plotly.offline as py
+import numbers
 import matplotlib.pyplot as plt
-from matplotlib import ticker
+
 
 parameter_array = {
     'R': 4,
@@ -16,13 +17,13 @@ parameter_array = {
     'a': 0.8,
     'T': 180}
 
-array_norm_N = {'1':7,
-                '2':18,
-                '3':52,
-                '4':137,
-                '5':347,
-                '6':877,
-                '7':2202}
+array_norm_N = {'0.1':7,
+                '0.01':18,
+                '0.001':52,
+                '0.0001':137,
+                '0.00001':347,
+                '0.000001':877,
+                '0.0000001':2202}
 
 dataChanged=[0]
 def updateParameret_array(dan):
@@ -107,12 +108,8 @@ def u(r,t, eps,colslag,date=None):
     u = all * (1- np.exp(x))
     if (colslag==0):
         if dataChanged[0]==1:
-            da=getparams()
-            for t in np.arange(1, da['T'] + 1):
-                for r in np.arange(0, da['R'] + 0.1, 0.1):
-                    experimental_eps(r, t, eps, da)
-            N = NMAX[0]
 
+            N = analitic_eps(eps)
             for i in np.arange(1, N, 1):
                 u += An(i, t) * spc.j0((bessel0[i] * r) / parameter_array['R'])
 
@@ -135,11 +132,11 @@ def getparams():
 def drawUIT(da, eps,colSlag):
     data = [dict(
     visible=False,
-    line=dict(color='#ff0000', width=3),
+    line=dict(color='#ff0000', width=2),
     name='t = ' + str(step),
-    x=np.arange(0, 4.1, 0.1),
-    y=[u(t, step, eps,colSlag, da) for t in np.arange(0, 4.1, 0.1)]) for step in
-    range(1,181)]
+    x=np.arange(0, da['R']+0.1, 0.1),
+    y=[u(t, step, eps,colSlag, da) for t in np.arange(0, da['R']+0.1, 0.1)]) for step in
+    np.arange(da['T']+1)]
     steps = []
     for i in range(len(data)):
         step = dict(
@@ -160,10 +157,10 @@ def drawUIT(da, eps,colSlag):
 def drawUIR(da, eps,colSlag):
     data = [dict(
     visible=False,
-    line=dict(color='#ff0000', width=3),
+    line=dict(color='#ff0000', width=2),
     name='r = ' + str(step),
-    x=np.arange(181),
-    y=[u(step, t, eps,colSlag,da) for t in np.arange(1,181)]) for step in np.arange(0, 4.1, 0.1)]
+    x=np.arange(da['T']),
+    y=[u(step, t, eps,colSlag,da) for t in np.arange(da['T']+1)]) for step in np.arange(0, da['R']+0.1, 0.1)]
 
     steps = []
 
@@ -183,6 +180,7 @@ def drawUIR(da, eps,colSlag):
     fig = dict(data=data, layout=layout)
     py.plot(fig, filename='Temperature in radius.html')
 
+# Для построения графика погрешности
 Xnew = []
 Ynew=[]
 
@@ -191,7 +189,8 @@ def plot_eps(x,y):
     fig=  plt.figure("График погрешности ")
     ax = fig.add_subplot(111)
     plt.grid(True)
-    plt.plot(x, y, marker='o',markersize = 2,markeredgecolor = '#0000FF')
+    ax.set_yticks([2202,1900,1700,1500,1250,1000,877,650,500,347,137,7])
+    plt.plot(x, y, marker='o',markersize = 2.5,markeredgecolor = '#0000FF')
     plt.plot(x, y,linewidth = 1,color = '#00BFFF')
     plt.plot(Xnew,Ynew,color='#FF0000')
     plt.xlabel("accuracy")
@@ -203,13 +202,9 @@ def plot_eps(x,y):
 
     plt.show()
 
-
-exit = 0
-
-# 
 # X = [0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1]
 # Y=[2202,877,347,137,52,18,7]
-# 
+#
 # yt = 0.0000001
 # st = -8
 # i =0
@@ -223,11 +218,11 @@ exit = 0
 #         st=st+1
 #         i=0
 #         yt=10**(st+1)
-# 
-# 
+#
+#
 # plot_eps(X,Y)
 
-
+exit = 0
 while(exit==0):
     da = getparams()
     print("Текущие параметры")
@@ -238,15 +233,97 @@ while(exit==0):
 
     if yes.upper() == "+":
         dataChanged[0]=1
-        R = input("Введите R ")
-        l = input("Введите l ")
-        k = input("Введите k ")
-        alfa = input("Введите alfa ")
-        c = input("Введите c ")
-        betta = input("Введите betta ")
-        P = input("Введите P ")
-        T = input("Введите T ")
-        a = input("Введите a ")
+        while True:
+            try:
+                R = float(input("Введите R "))
+                if((R<=0) or R>=10):
+                    print("Вы должны ввести положительное число больше, 0 и меньше 10, попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число больше, 0 и меньше 10, попробуйте снова.")
+
+        while True:
+            try:
+                l = float(input("Введите l "))
+                if  (l<=0 or l>=5):
+                    print("Вы должны ввести положительное число, больше 0 и меньше 5 , попробуйте снова.")
+                else:
+                     break
+            except ValueError:
+                print("Вы должны ввести положительное число, больше 0 и меньше 5 , попробуйте снова.")
+
+        while True:
+            try:
+                k = float(input("Введите k "))
+                if  ((k<=0) or (k>1)):
+                    print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+
+        while True:
+            try:
+                alfa = float(input("Введите alfa "))
+                if((alfa<=0) or (alfa>1)):
+                    print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+
+        while True:
+            try:
+                c = float(input("Введите c "))
+                if ((c<=0) or (c>10)):
+                    print("Вы должны ввести положительное число, больше 0 и меньше 10 , попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число, больше 0 и меньше 10 , попробуйте снова.")
+
+        while True:
+            try:
+                betta = float(input("Введите betta "))
+                if ((betta<=0) or (betta>1)):
+                    print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число, больше 0 и меньше 1 , попробуйте снова.")
+
+        while True:
+            try:
+                P = float(input("Введите P "))
+                if(P<=0):
+                    print("Вы должны ввести положительное число, попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести положительное число, попробуйте снова.")
+
+        while True:
+            try:
+                T = int(input("Введите T "))
+                if(T <= 0):
+                     print("Вы должны ввести целое положительное число , попробуйте снова.")
+                else:
+                    break
+            except ValueError:
+                print("Вы должны ввести целое положительное число , попробуйте снова.")
+
+        while True:
+            try:
+                a = float(input("Введите a "))
+                if(a <= 0):
+                    print("Вы должны ввести целое положительное число , попробуйте снова.")
+                else:
+                     break
+            except ValueError:
+                print("Вы должны ввести целое положительное число , попробуйте снова.")
+
+
         da['R'] = float(R)
         da['l'] = float(l)
         da['k'] = float(k)
@@ -270,22 +347,51 @@ while(exit==0):
             "Хотите посчитать ряд используя точность( введите - 1) или количество слагаемых для посчета(введите 2) ? "))
 
         if yes_no == "1":
-            eps = int(input("Введите точность (целоечисло -количество знаков после запятой)"))
+
+            while True:
+                try:
+                    eps = float(input("Введите точность (пример 0.001 или 10e-4)"))
+                    if ((eps<0) or (eps>=0.9)):
+                        print("Вы должны ввести число больше 0 и меньше 0.9 , попробуйте снова.")
+                    else:
+                        break
+                except ValueError:
+                    print("Вы должны ввести число больше 0 и меньше 0.9 , попробуйте снова.")
+
             print("Подождите, пожалуйста, выполняются вычисления...")
             drawUIR(da, eps, 0)
             drawUIT(da, eps, 0)
 
         if yes_no == "2":
-            n = int(input("Введите количество слагаемых N = "))
+
+            while True:
+                try:
+                    n = int(input("Введите количество слагаемых N = "))
+                    if ((n<=3) or (n>10000)):
+                        print("Вы должны ввести целое число > 3 и < 10 000, попробуйте снова.")
+                    else:
+                        break
+                except ValueError:
+                    print("Вы должны ввести целое число > 3 и < 10 000, попробуйте снова.")
+
             print("Подождите, пожалуйста, выполняются вычисления...")
-            drawUIR(da, eps, n)
-            drawUIT(da, eps, n)
+            drawUIR(da, 0, n)
+            drawUIT(da, 0, n)
 
     if scoreOrSeries == "2":
         error = (input(
             "Рассчитать кол -во слагаемых для достижени конкретной точности (введите 1 ) или для всего ряда (введите 2 (это займет много времени ))"))
         if error == "1":
-            ep = int(input("Введите точность (целое число -количество знаков после запятой)"))
+            while True:
+                try:
+                    ep = float(input("Введите точность (пример 0.001 или 10e-4)"))
+                    if ((ep<0) or (ep>=0.9)):
+                        print("Вы должны ввести число больше 0 и меньше 0.9 , попробуйте снова.")
+                    else:
+                        break
+                except ValueError:
+                    print("Вы должны ввести число больше 0 и меньше 0.9 , попробуйте снова.")
+
             print("Подождите, пожалуйста, выполняются вычисления...")
             for t in np.arange(1, da['T'] + 1):
                 for r in np.arange(0, da['R'] + 0.1, 0.1):
@@ -298,19 +404,18 @@ while(exit==0):
         if error == "2":
             print("Подождите, пожалуйста, выполняются вычисления...")
             Y = []
-            EPS = [1, 2, 3, 4, 5, 6, 7]  # степени
+            EPS = [0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1] # степени
             for ep in EPS:
                 for t in np.arange(1, da['T'] + 1):
                     for r in np.arange(0, da['R'] + 0.1, 0.1):
                         experimental_eps(r, t, ep, da)
-                print("NMAX избыточое для eps = 10^-", ep, "равно ", analitic_eps(ep))
-                print("NMAX достаточное для eps = 10^-", ep, "равно ", NMAX)
+                print("N избыточое для eps = ", ep, "равно ", analitic_eps(ep))
+                print("N достаточное для eps = ", ep, "равно ", NMAX)
                 Y.append(NMAX[0])
                 NMAX[0] = 0
                 flag.clear()
-            X = [16, 32, 64, 128, 256, 512, 1024]  # для удобства построения погрешности 16 - 10e-7, 32 - 10e-6 и т.д
-            Y.reverse()
-            plot_eps(X, Y)
+
+            plot_eps(EPS, Y)
     exit = int(input("Для выхода нажмите - 1 , чтобы продолжить - 0"))
     dataChanged[0]=0
     print("-------------------------------------------------------------------------------------")
